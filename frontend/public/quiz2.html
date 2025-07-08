@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Quiz App</title>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+		/>
+		<link rel="stylesheet" href="quiz2.css" />
+		
+	</head>
+	<body>
+		<div class="container">
+			<!-- Start Button -->
+			<div class="start_btn glass-card">
+				<button><i class="fas fa-play"></i> Start Quiz</button>
+			</div>
+
+			<!-- Info Box -->
+			<section class="info_box glass-card">
+				<div class="info-title">
+					<i class="fas fa-info-circle"></i>
+					Rules of the Quiz
+				</div>
+				<ul class="info-list">
+					<li class="info">
+						You will have only <strong>15 seconds</strong> per question.
+					</li>
+					<li class="info">Once you select your answer, it can't be undone.</li>
+					<li class="info">You can't select any option once time is up.</li>
+					<li class="info">You can't exit the quiz while it's in progress.</li>
+					<li class="info">You'll earn points based on correct answers.</li>
+				</ul>
+				<div class="buttons">
+					<button class="quit"><i class="fas fa-times"></i> Exit Quiz</button>
+					<button class="restart">
+						<i class="fas fa-arrow-right"></i> Continue
+					</button>
+				</div>
+			</section>
+
+			<!-- Quiz Box -->
+			<section class="quiz_box glass-card">
+				<header>
+					<div class="title"><i class="fas fa-brain"></i> Quiz Application</div>
+					<div class="timer">
+						<div class="time_left_txt">Time Left</div>
+						<div class="timer_sec">15</div>
+					</div>
+				</header>
+				<div class="progress-container">
+					<div class="time_line"></div>
+				</div>
+				<main>
+					<div class="que_text">
+						<!-- Question text inserted by JS -->
+					</div>
+					<div class="option_list">
+						<!-- Options inserted by JS -->
+					</div>
+				</main>
+				<footer>
+					<div class="total_que">
+						<!-- Question number inserted by JS -->
+					</div>
+					<button class="next_btn">
+        <i class="fas fa-arrow-right"></i> Next
+    </button>
+				</footer>
+			</section>
+
+			<!-- Result Box -->
+			<section class="result_box glass-card">
+				<div class="icon">
+					<i class="fas fa-trophy"></i>
+				</div>
+				<h2 class="complete_text">🎉 You've completed the Quiz!</h2>
+				<div class="score_text">
+					<!-- Final score inserted by JS -->
+				</div>
+				<div class="buttons">
+					<button class="restart">
+						<i class="fas fa-redo"></i> Replay Quiz
+					</button>
+					<button class="quit"><i class="fas fa-home"></i> Quit Quiz</button>
+				</div>
+			</section>
+		</div>
+
+		<script>
+			// Enhanced quiz questions
+			const questions = [
+				{
+					numb: 1,
+					question: "What does HTML stand for?",
+					answer: "Hyper Text Markup Language",
+					options: [
+						"Hyper Text Preprocessor",
+						"Hyper Text Markup Language",
+						"Hyper Text Multiple Language",
+						"Hyper Tool Multi Language",
+					],
+				},
+				{
+					numb: 2,
+					question: "What does CSS stand for?",
+					answer: "Cascading Style Sheet",
+					options: [
+						"Common Style Sheet",
+						"Colorful Style Sheet",
+						"Computer Style Sheet",
+						"Cascading Style Sheet",
+					],
+				},
+				{
+					numb: 3,
+					question: "What does JS stand for?",
+					answer: "JavaScript",
+					options: ["JavaStyle", "JavaScript", "JustScript", "JordanScript"],
+				},
+				{
+					numb: 4,
+					question: "What does SQL stand for?",
+					answer: "Structured Query Language",
+					options: [
+						"Stylish Question Language",
+						"Stylesheet Query Language",
+						"Statement Question Language",
+						"Structured Query Language",
+					],
+				},
+				{
+					numb: 5,
+					question: "What does XML stand for?",
+					answer: "eXtensible Markup Language",
+					options: [
+						"eXtensible Markup Language",
+						"eXecutable Multiple Language",
+						"eXTra Multi-Program Language",
+						"eXamine Multiple Language",
+					],
+				},
+			];
+
+			// Quiz state variables
+			let timeValue = 15;
+			let queCount = 0;
+			let queNumb = 1;
+			let userScore = 0;
+			let counter;
+			let counterLine;
+			let widthValue = 0;
+
+			// DOM elements
+			const startBtn = document.querySelector(".start_btn button");
+			const infoBox = document.querySelector(".info_box");
+			const exitBtn = infoBox.querySelector(".buttons .quit");
+			const continueBtn = infoBox.querySelector(".buttons .restart");
+			const quizBox = document.querySelector(".quiz_box");
+			const resultBox = document.querySelector(".result_box");
+			const optionList = document.querySelector(".option_list");
+			const timeText = document.querySelector(".timer .time_left_txt");
+			const timeCount = document.querySelector(".timer .timer_sec");
+			const timeLine = document.querySelector(".time_line");
+			const nextBtn = document.querySelector("footer .next_btn");
+
+			// Event listeners
+			startBtn.addEventListener("click", () => {
+				document.querySelector(".start_btn").classList.add("hide");
+				infoBox.classList.add("activeInfo");
+			});
+
+			exitBtn.addEventListener("click", () => {
+				infoBox.classList.remove("activeInfo");
+				document.querySelector(".start_btn").classList.remove("hide");
+			});
+
+			continueBtn.addEventListener("click", () => {
+				infoBox.classList.remove("activeInfo");
+				quizBox.classList.add("activeQuiz");
+				showQuestions(0);
+				queCounter(1);
+				startTimer(15);
+				startTimerLine(0);
+			});
+
+			nextBtn.addEventListener("click", () => {
+				if (queCount < questions.length - 1) {
+					queCount++;
+					queNumb++;
+					showQuestions(queCount);
+					queCounter(queNumb);
+					clearInterval(counter);
+					clearInterval(counterLine);
+					startTimer(timeValue);
+					startTimerLine(widthValue);
+					timeText.textContent = "Time Left";
+					nextBtn.classList.remove("show");
+				} else {
+					clearInterval(counter);
+					clearInterval(counterLine);
+					showResult();
+				}
+			});
+
+			// Restart and quit buttons
+			document.querySelectorAll(".restart").forEach((btn) => {
+				btn.addEventListener("click", () => {
+					// Reset all variables
+					timeValue = 15;
+					queCount = 0;
+					queNumb = 1;
+					userScore = 0;
+					widthValue = 0;
+
+					// Clear intervals
+					clearInterval(counter);
+					clearInterval(counterLine);
+
+					// Reset UI states
+					quizBox.classList.add("activeQuiz");
+					resultBox.classList.remove("activeResult");
+					document.querySelector(".start_btn").classList.add("hide");
+					infoBox.classList.remove("activeInfo");
+
+					// Start fresh quiz
+					showQuestions(queCount);
+					queCounter(queNumb);
+					startTimer(timeValue);
+					startTimerLine(widthValue);
+					timeText.textContent = "Time Left";
+					nextBtn.classList.remove("show");
+				});
+			});
+
+			document.querySelectorAll(".quit").forEach((btn) => {
+				btn.addEventListener("click", () => {
+					// Reset everything to initial state
+					clearInterval(counter);
+					clearInterval(counterLine);
+					timeValue = 15;
+					queCount = 0;
+					queNumb = 1;
+					userScore = 0;
+					widthValue = 0;
+
+					// Show start screen
+					document.querySelector(".start_btn").classList.remove("hide");
+					infoBox.classList.remove("activeInfo");
+					quizBox.classList.remove("activeQuiz");
+					resultBox.classList.remove("activeResult");
+				});
+			});
+
+			// Show questions function
+			function showQuestions(index) {
+				const queText = document.querySelector(".que_text");
+				const queTag = `<span>${questions[index].numb}. ${questions[index].question}</span>`;
+				let optionTag = "";
+
+				for (let i = 0; i < questions[index].options.length; i++) {
+					optionTag += `<div class="option" data-answer="${questions[index].options[i]}">
+          <span>${questions[index].options[i]}</span>
+        </div>`;
+				}
+
+				queText.innerHTML = queTag;
+				optionList.innerHTML = optionTag;
+
+				// Add event listeners to options
+				const options = optionList.querySelectorAll(".option");
+				options.forEach((option) => {
+					option.addEventListener("click", function () {
+						optionSelected(this);
+					});
+				});
+			}
+
+			// Option selected function
+			function optionSelected(answer) {
+				clearInterval(counter);
+				clearInterval(counterLine);
+
+				const userAns = answer.dataset.answer;
+				const correctAns = questions[queCount].answer;
+				const allOptions = optionList.children;
+
+				if (userAns === correctAns) {
+					userScore += 1;
+					answer.classList.add("correct");
+					answer.innerHTML +=
+						'<div class="icon"><i class="fas fa-check"></i></div>';
+				} else {
+					answer.classList.add("incorrect");
+					answer.innerHTML +=
+						'<div class="icon"><i class="fas fa-times"></i></div>';
+
+					// Highlight correct answer
+					for (let i = 0; i < allOptions.length; i++) {
+						if (allOptions[i].dataset.answer === correctAns) {
+							allOptions[i].classList.add("correct");
+							allOptions[i].innerHTML +=
+								'<div class="icon"><i class="fas fa-check"></i></div>';
+						}
+					}
+				}
+
+				// Disable all options
+				for (let i = 0; i < allOptions.length; i++) {
+					allOptions[i].classList.add("disabled");
+				}
+
+				nextBtn.classList.add("show");
+			}
+
+			// Show result function
+			function showResult() {
+				infoBox.classList.remove("activeInfo");
+				quizBox.classList.remove("activeQuiz");
+				resultBox.classList.add("activeResult");
+
+				const scoreText = resultBox.querySelector(".score_text");
+				let scoreTag;
+
+				if (userScore > 3) {
+					scoreTag = `<span>🎉 Congratulations! You got <p>${userScore}</p> out of <p>${questions.length}</p></span>`;
+				} else if (userScore > 1) {
+					scoreTag = `<span>👍 Nice! You got <p>${userScore}</p> out of <p>${questions.length}</p></span>`;
+				} else {
+					scoreTag = `<span>😔 Sorry! You got only <p>${userScore}</p> out of <p>${questions.length}</p></span>`;
+				}
+
+				scoreText.innerHTML = scoreTag;
+			}
+
+			// Timer function
+
+			function startTimer(time) {
+				counter = setInterval(timer, 1000);
+				function timer() {
+					timeCount.textContent = time;
+					time--;
+					if (time < 9) {
+						let addZero = timeCount.textContent;
+						timeCount.textContent = "0" + addZero;
+					}
+					if (time < 0) {
+						clearInterval(counter);
+						timeText.textContent = "Time Off";
+						const allOptions = optionList.children.length;
+						let correcAns = questions[que_count].answer;
+						for (let i = 0; i < allOptions; i++) {
+							if (optionList.children[i].textContent.trim() == correcAns) {
+								optionList.children[i].setAttribute("class", "option correct");
+								optionList.children[i].insertAdjacentHTML(
+									"beforeend",
+									'<div class="icon tick"><i class="fas fa-check"></i></div>'
+								);
+							}
+						}
+						for (let i = 0; i < allOptions; i++) {
+							optionList.children[i].classList.add("disabled");
+						}
+						nextBtn.classList.add("show");
+					}
+				}
+			}
+
+			function startTimerLine(time) {
+				counterLine = setInterval(timer, 29);
+				function timer() {
+					time += 1;
+					timeLine.style.width = time + "px";
+					if (time > 549) {
+						clearInterval(counterLine);
+					}
+				}
+			}
+
+			function queCounter(index) {
+				let totalQueCounTag =
+					"<span><p>" +
+					index +
+					"</p> of <p>" +
+					questions.length +
+					"</p> Questions</span>";
+				document.querySelector(".total_que").innerHTML = totalQueCounTag;
+			}
+			// Initialize the quiz
+			document.querySelector(".start_btn").classList.remove("hide");
+			infoBox.classList.remove("activeInfo");
+			quizBox.classList.remove("activeQuiz");
+			resultBox.classList.remove("activeResult");
+			queCounter(0);
+		</script>
+	</body>
+</html>

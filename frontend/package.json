@@ -1,0 +1,12 @@
+{
+  "name": "quiz-desktop-frontend",
+  "version": "1.0.0",
+  "description": "Cross-platform desktop quiz app frontend (Electron)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^28.3.3"
+  }
+}
